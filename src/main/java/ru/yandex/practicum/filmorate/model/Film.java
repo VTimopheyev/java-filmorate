@@ -8,9 +8,9 @@ import java.time.LocalDate;
 @Data
 public class Film {
 
-    private final int id;
+    private int id;
     private final String name;
     private final LocalDate releaseDate;
     private final String description;
-    private final Duration duration;
+    private final int duration;
 }

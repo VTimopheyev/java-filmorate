@@ -7,68 +7,89 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.ValidationException;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.HashMap;
 
-@RestController("/users")
+@RestController
+@RequestMapping("/users")
 public class UserController {
 
     HashMap<Integer, User> users = new HashMap<>();
     private final static Logger log = LoggerFactory.getLogger(UserController.class);
+    private int count = 0;
 
     @PostMapping
-    public User createNewUser(@RequestBody User user) throws Exception {
-        if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
-            Exception e = new ValidationException("Email is wrong");
-            log.debug(e.getMessage());
-            throw e;
-        } else if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
-            Exception e = new ValidationException("Login is wrong");
-            log.debug(e.getMessage());
-            throw e;
-        } else if (user.getBirthday().isAfter(LocalDate.now())) {
-            Exception e = new ValidationException("Birth date must not be in future");
-            log.debug(e.getMessage());
-            throw e;
+    public User createNewUser(@RequestBody User user) {
+        try {
+            if (validateUser(user)) {
+
+                if (user.getName().isEmpty()) {
+                    user.setName(user.getLogin());
+                }
+                count++;
+                user.setId(count);
+                users.put(count, user);
+                log.info("New user created successfully");
+            }
+        } catch (Exception e) {
+            log.info(e.getMessage());
         }
 
-        if (user.getName().isEmpty()) {
-            user.setName(user.getLogin());
-        }
-
-        users.put(user.getId(), user);
-        log.info("New user created successfully");
-        return user;
+        return users.get(count);
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) throws Exception {
-        if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
-            Exception e = new ValidationException("Email is wrong");
-            log.debug(e.getMessage());
-            throw e;
-        } else if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
-            Exception e = new ValidationException("Login is wrong");
-            log.debug(e.getMessage());
-            throw e;
-        } else if (user.getBirthday().isAfter(LocalDate.now())) {
-            Exception e = new ValidationException("Birth date must not be in future");
-            log.debug(e.getMessage());
-            throw e;
+    public User updateUser(@RequestBody User user) {
+
+        try {
+            if (validateUser(user) && checkUserExist(user)){
+                if (user.getName().isEmpty()) {
+                    user.setName(user.getLogin());
+                }
+                users.put(user.getId(), user);
+                log.info("New user updated successfully");
+            }
+        }
+        catch (Exception e){
+            log.info(e.getMessage());
         }
 
-        if (user.getName().isEmpty()) {
-            user.setName(user.getLogin());
-        }
-
-        users.put(user.getId(), user);
-        log.info("New user updated successfully");
-        return user;
+        return users.get(user.getId());
     }
 
     @GetMapping
-    public HashMap<Integer, User> getAllFilms() {
+    public ArrayList<User> getAllUsers() {
+        ArrayList <User> list = new ArrayList<>();
+        for (int id : users.keySet()){
+            list.add(users.get(id));
+        }
         log.info("Users list has been sent");
-        return users;
+        return list;
+    }
+
+    public boolean validateUser(User user) throws Exception {
+        boolean validated = true;
+
+        if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
+            throw new ValidationException("Email is wrong");
+
+        } else if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
+            throw new ValidationException("Login is wrong");
+
+        } else if (user.getBirthday().isAfter(LocalDate.now())) {
+            throw new ValidationException("Birth date must not be in future");
+
+        }
+        return validated;
+    }
+
+    public boolean checkUserExist (User user) throws ValidationException {
+        if (users.containsKey(user.getId())){
+            return true;
+        }
+        else {
+            throw new ValidationException("No such user to update");
+        }
     }
 }
 
