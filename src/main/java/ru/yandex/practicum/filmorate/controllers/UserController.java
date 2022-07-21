@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.service.InstanceNotFoundException;
 import ru.yandex.practicum.filmorate.service.ValidationException;
 
 import java.time.LocalDate;
@@ -14,81 +15,73 @@ import java.util.HashMap;
 @RequestMapping("/users")
 public class UserController {
 
-    HashMap<Integer, User> users = new HashMap<>();
+    private HashMap<Integer, User> users = new HashMap<>();
     private final static Logger log = LoggerFactory.getLogger(UserController.class);
     private int count = 0;
 
     @PostMapping
-    public User createNewUser(@RequestBody User user) {
-        try {
-            if (validateUser(user)) {
+    public User createNewUser(@RequestBody User user) throws ValidationException {
+        if (validateUser(user)) {
 
-                if (user.getName().isEmpty()) {
-                    user.setName(user.getLogin());
-                }
-                count++;
-                user.setId(count);
-                users.put(count, user);
-                log.info("New user created successfully");
+            if (user.getName().isEmpty()) {
+                user.setName(user.getLogin());
             }
-        } catch (Exception e) {
-            log.info(e.getMessage());
+            count++;
+            user.setId(count);
+            users.put(count, user);
+            log.info("New user created successfully");
         }
 
         return users.get(count);
     }
 
     @PutMapping
-    public User updateUser(@RequestBody User user) {
-
-        try {
-            if (validateUser(user) && checkUserExist(user)){
-                if (user.getName().isEmpty()) {
-                    user.setName(user.getLogin());
-                }
-                users.put(user.getId(), user);
-                log.info("New user updated successfully");
+    public User updateUser(@RequestBody User user) throws Exception {
+        if (validateUser(user) && checkUserExist(user)) {
+            if (user.getName().isEmpty()) {
+                user.setName(user.getLogin());
             }
+            users.put(user.getId(), user);
+            log.info("New user updated successfully");
         }
-        catch (Exception e){
-            log.info(e.getMessage());
-        }
-
         return users.get(user.getId());
     }
 
     @GetMapping
     public ArrayList<User> getAllUsers() {
-        ArrayList <User> list = new ArrayList<>();
-        for (int id : users.keySet()){
+        ArrayList<User> list = new ArrayList<>();
+        for (int id : users.keySet()) {
             list.add(users.get(id));
         }
         log.info("Users list has been sent");
         return list;
     }
 
-    public boolean validateUser(User user) throws Exception {
+    private boolean validateUser(User user) throws ValidationException {
         boolean validated = true;
 
         if (user.getEmail().isEmpty() || !user.getEmail().contains("@")) {
+            log.info("Email is wrong");
             throw new ValidationException("Email is wrong");
 
         } else if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
+            log.info("Login is wrong");
             throw new ValidationException("Login is wrong");
 
         } else if (user.getBirthday().isAfter(LocalDate.now())) {
+            log.info("Birth date must not be in future");
             throw new ValidationException("Birth date must not be in future");
 
         }
         return validated;
     }
 
-    public boolean checkUserExist (User user) throws ValidationException {
-        if (users.containsKey(user.getId())){
+    private boolean checkUserExist(User user) throws InstanceNotFoundException {
+        if (users.containsKey(user.getId())) {
             return true;
-        }
-        else {
-            throw new ValidationException("No such user to update");
+        } else {
+            log.info("No such user to update");
+            throw new InstanceNotFoundException("No such user to update");
         }
     }
 }

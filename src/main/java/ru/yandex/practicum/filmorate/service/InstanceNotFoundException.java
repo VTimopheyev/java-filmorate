@@ -3,11 +3,11 @@ package ru.yandex.practicum.filmorate.service;
 import org.springframework.http.HttpStatus;
 import org.springframework.web.bind.annotation.ResponseStatus;
 
-@ResponseStatus(HttpStatus.BAD_REQUEST)
-public class ValidationException extends RuntimeException{
+@ResponseStatus(HttpStatus.INTERNAL_SERVER_ERROR)
+public class InstanceNotFoundException extends RuntimeException {
 
 
-    public ValidationException (String message){
+    public InstanceNotFoundException(String message) {
 
         super(message);
     }
