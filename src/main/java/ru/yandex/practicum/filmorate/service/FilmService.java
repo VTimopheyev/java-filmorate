@@ -8,12 +8,9 @@ import ru.yandex.practicum.filmorate.exceptions.InstanceNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
-import ru.yandex.practicum.filmorate.storage.InMemoryFilmStorage;
 
 import java.time.LocalDate;
 import java.util.ArrayList;
-import java.util.Comparator;
-import java.util.HashMap;
 import java.util.List;
 import java.util.stream.Collectors;
 import java.util.stream.Stream;
@@ -33,39 +30,46 @@ public class FilmService {
 
     public Film addNewFilm (Film film) {
         if (validateFilm(film)) {
+            if (film.getLikesList() == null){
+                film.setLikesList(new ArrayList<>());
+            }
             return filmStorage.addNewFilm(film);
         }
         return null;
     }
 
     public Film updateFilm (Film film) {
-        if (validateFilm(film) && checkFilmExist(film)) {
+        if (validateFilm(film) && checkFilmExist(film.getId())) {
             return filmStorage.updateFilm(film);
 
         }
         return null;
     }
 
-    public List<Film> getAllFilmsList (){
+    public ArrayList<Film> getAllFilmsList (){
         return filmStorage.getAllFilms();
     }
 
     public void putLike (Integer filmId, Integer userId){
-        if (checkFilmExist(filmStorage.getFilms().get(filmId)) && !checkIfFilmWasPreviouslyLiked(filmId, userId)){
+        if (checkFilmExist(filmId) && !checkIfFilmWasPreviouslyLiked(filmId, userId)){
             filmStorage.putNewLike(filmId, userId);
         }
     }
 
     public void removeLike (Integer filmId, Integer userId){
-        if (checkFilmExist(filmStorage.getFilms().get(filmId)) && checkIfFilmWasPreviouslyLiked(filmId, userId)){
+        if (checkFilmExist(filmId) && checkIfFilmWasPreviouslyLiked(filmId, userId)){
             filmStorage.removeLike(filmId, userId);
         }
     }
 
-    public List <Film> getMostLikedFilms (Long limit){
+    public List <Film> getMostLikedFilms (Long limit)  {
         List<Film> allFilms = new ArrayList<>();
         for (int key : filmStorage.getFilms().keySet()){
             allFilms.add(filmStorage.getFilms().get(key));
+        }
+
+        if (!allFilms.isEmpty()){
+            throw new InstanceNotFoundException("There is no liked films");
         }
 
         List <Film> mostLikedFilms = allFilms.stream()
@@ -97,8 +101,8 @@ public class FilmService {
         return true;
     }
 
-    private boolean checkFilmExist(Film film) throws InstanceNotFoundException {
-        if (filmStorage.getFilms().containsKey(film.getId())) {
+    public boolean checkFilmExist(int id) throws InstanceNotFoundException {
+        if (filmStorage.getFilms().containsKey(id)) {
             return true;
         } else {
             log.info("No such film to update");
@@ -106,7 +110,7 @@ public class FilmService {
         }
     }
 
-    private boolean checkIfFilmWasPreviouslyLiked (Integer filmId, Integer userId){
+    public boolean checkIfFilmWasPreviouslyLiked (Integer filmId, Integer userId){
         if (filmStorage.getFilms().get(filmId).getLikesList().contains(userId)){
             return true;
         }

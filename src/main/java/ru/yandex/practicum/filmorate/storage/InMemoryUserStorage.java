@@ -3,7 +3,8 @@ package ru.yandex.practicum.filmorate.storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
-import ru.yandex.practicum.filmorate.controllers.UserController;
+import ru.yandex.practicum.filmorate.exceptions.InstanceNotFoundException;
+
 import ru.yandex.practicum.filmorate.model.User;
 
 import java.util.ArrayList;
@@ -32,7 +33,7 @@ public class InMemoryUserStorage implements UserStorage {
         return users.get(user.getId());
     }
 
-    public ArrayList<User> sendAllUsersList(){
+    public List <User> sendAllUsersList(){
         ArrayList<User> list = new ArrayList<>();
         for (int id : users.keySet()) {
             list.add(users.get(id));
@@ -53,7 +54,18 @@ public class InMemoryUserStorage implements UserStorage {
         log.info("Friend was removed from user`s list of friends");
     }
 
-    public List<User> getCommonFriendsList (Integer id, Integer friendId){
+    public List <User> getAllFriendsOfUser (int id) throws InstanceNotFoundException{
+        if (users.get(id).getFriends().isEmpty()){
+            throw new InstanceNotFoundException("User has no friends");
+        }
+        List <User> userFriends = new ArrayList<>();
+        for (int friend : users.get(id).getFriends()){
+            userFriends.add(users.get(friend));
+        }
+        return userFriends;
+    }
+
+    public List <User> getCommonFriendsList (Integer id, Integer friendId){
         List <User> commonFriends = new ArrayList <User>();
         for (Integer friend : users.get(id).getFriends()) {
             if (users.get(friendId).getFriends().contains(friend)){

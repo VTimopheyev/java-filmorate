@@ -4,14 +4,14 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
-import ru.yandex.practicum.filmorate.controllers.UserController;
 import ru.yandex.practicum.filmorate.exceptions.InstanceNotFoundException;
 import ru.yandex.practicum.filmorate.exceptions.ValidationException;
+
 import ru.yandex.practicum.filmorate.model.User;
+
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
-import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -36,7 +36,7 @@ public class UserService {
     }
 
     public User updateUser(User user) {
-        if (validateUser(user) && checkUserExist(user)) {
+        if (validateUser(user) && checkUserExist(user.getId())) {
             if (user.getName().isEmpty()) {
                 user.setName(user.getLogin());
             }
@@ -45,28 +45,33 @@ public class UserService {
         return null;
     }
 
-    public ArrayList<User> getAllUsersList() {
+    public List<User> getAllUsersList() {
 
         return userStorage.sendAllUsersList();
     }
 
     public void addNewFriendToUser(Integer id, Integer friendId) {
-        if (checkUserExist(userStorage.getUsers().get(id)) && checkUserExist(userStorage.getUsers().get(id))) {
+        if (checkUserExist(id) && checkUserExist(friendId)) {
             userStorage.addNewFriendToUser(id, friendId);
         }
     }
 
     public void removeUserFromFriends(Integer id, Integer friendId) {
-        if (checkUserExist(userStorage.getUsers().get(id)) &&
-                checkUserExist(userStorage.getUsers().get(friendId)) &&
+        if (checkUserExist(id) && checkUserExist(friendId) &&
                 checkUserInFriendsList(id, friendId)) {
-            userStorage.removeUserFromFriends (id, friendId);
+            userStorage.removeUserFromFriends(id, friendId);
         }
     }
 
-    public List <User> getCommonFriendsList (Integer id, Integer friendId){
-        if (checkUserExist(userStorage.getUsers().get(id)) &&
-                checkUserExist(userStorage.getUsers().get(friendId))){
+    public List<User> getAllFriends(int id) throws InstanceNotFoundException {
+        if (userStorage.getUsers().containsKey(id) && validateUser(userStorage.getUsers().get(id))) {
+
+        }
+        return null;
+    }
+
+    public List<User> getCommonFriendsList(Integer id, Integer friendId) {
+        if (checkUserExist(id) && checkUserExist(friendId)) {
             return userStorage.getCommonFriendsList(id, friendId);
         }
         return null;
@@ -88,8 +93,8 @@ public class UserService {
         return validated;
     }
 
-    private boolean checkUserExist(User user) throws InstanceNotFoundException {
-        if (userStorage.getUsers().containsKey(user.getId())) {
+    public boolean checkUserExist(int id) throws InstanceNotFoundException {
+        if (userStorage.getUsers().containsKey(id)) {
             return true;
         } else {
             log.info("No such user to update");
@@ -97,10 +102,10 @@ public class UserService {
         }
     }
 
-    private boolean checkUserInFriendsList(Integer id, Integer friendId) throws InstanceNotFoundException {
+    public boolean checkUserInFriendsList(Integer id, Integer friendId) throws InstanceNotFoundException {
         if (userStorage.getUsers().get(id).getFriends().contains(friendId)) {
             return false;
-        }else {
+        } else {
             log.info("There is a friend with this ID in the list already");
             throw new InstanceNotFoundException("There is a friend with this ID in the list already");
         }
