@@ -17,7 +17,7 @@ import java.util.List;
 @Service
 public class UserService {
 
-    UserStorage userStorage;
+    private UserStorage userStorage;
     private final static Logger log = LoggerFactory.getLogger(UserService.class);
 
     @Autowired

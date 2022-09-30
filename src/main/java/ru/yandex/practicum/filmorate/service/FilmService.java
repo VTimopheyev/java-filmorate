@@ -20,7 +20,7 @@ public class FilmService {
 
     private final static Logger log = LoggerFactory.getLogger(FilmService.class);
     private final LocalDate earliestReleaseDate = LocalDate.of(1895, 12, 28);
-    FilmStorage filmStorage;
+    private FilmStorage filmStorage;
 
     @Autowired
     public FilmService (FilmStorage filmStorage){
@@ -30,8 +30,8 @@ public class FilmService {
 
     public Film addNewFilm (Film film) {
         if (validateFilm(film)) {
-            if (film.getLikesList() == null){
-                film.setLikesList(new ArrayList<>());
+            if (film.getLikes() == null){
+                film.setLikes(new ArrayList<>());
             }
             return filmStorage.addNewFilm(film);
         }
@@ -73,7 +73,7 @@ public class FilmService {
         }
 
         List <Film> mostLikedFilms = allFilms.stream()
-                .sorted((o1, o2) -> o1.getLikesList().size() - o2.getLikesList().size())
+                .sorted((o1, o2) -> o1.getLikes().size() - o2.getLikes().size())
                 .limit(limit)
                 .collect(Collectors.toList());
 
@@ -111,7 +111,7 @@ public class FilmService {
     }
 
     public boolean checkIfFilmWasPreviouslyLiked (Integer filmId, Integer userId){
-        if (filmStorage.getFilms().get(filmId).getLikesList().contains(userId)){
+        if (filmStorage.getFilms().get(filmId).getLikes().contains(userId)){
             return true;
         }
         else {

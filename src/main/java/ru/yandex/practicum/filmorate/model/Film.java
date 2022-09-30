@@ -13,5 +13,5 @@ public class Film {
     private final LocalDate releaseDate;
     private final String description;
     private final int duration;
-    private List<Integer> likesList;
+    private List<Integer> likes;
 }
