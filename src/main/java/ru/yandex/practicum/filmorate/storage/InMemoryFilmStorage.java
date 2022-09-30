@@ -4,6 +4,7 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
+
 import java.util.ArrayList;
 import java.util.HashMap;
 
@@ -19,7 +20,6 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
 
-
     public Film addNewFilm(Film film) {
         count++;
         film.setId(count);
@@ -29,12 +29,15 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     public Film updateFilm(Film film) {
+        if (film.getLikes() == null) {
+            film.setLikes(new ArrayList<>());
+        }
         films.put(film.getId(), film);
         log.info("Film was updated successfully");
         return films.get(film.getId());
     }
 
-    public ArrayList <Film> getAllFilms(){
+    public ArrayList<Film> getAllFilms() {
         ArrayList<Film> list = new ArrayList<>();
         for (int id : films.keySet()) {
             list.add(films.get(id));

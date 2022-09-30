@@ -12,6 +12,7 @@ import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.LocalDate;
+import java.util.ArrayList;
 import java.util.List;
 
 @Service
@@ -40,6 +41,9 @@ public class UserService {
             if (user.getName().isEmpty()) {
                 user.setName(user.getLogin());
             }
+            if (user.getFriends() == null) {
+                user.setFriends(new ArrayList<>());
+            }
             return userStorage.updateUser(user);
         }
         return null;
@@ -65,7 +69,7 @@ public class UserService {
 
     public List<User> getAllFriends(int id) throws InstanceNotFoundException {
         if (userStorage.getUsers().containsKey(id) && validateUser(userStorage.getUsers().get(id))) {
-
+            return userStorage.getAllFriendsOfUser(id);
         }
         return null;
     }
@@ -108,6 +112,15 @@ public class UserService {
         } else {
             log.info("There is a friend with this ID in the list already");
             throw new InstanceNotFoundException("There is a friend with this ID in the list already");
+        }
+    }
+
+    public User getUserById(int id) {
+        if (checkUserExist(id)) {
+            return userStorage.getUsers().get(id);
+        } else {
+            log.info("There is no such user");
+            throw new InstanceNotFoundException("No such User");
         }
     }
 }

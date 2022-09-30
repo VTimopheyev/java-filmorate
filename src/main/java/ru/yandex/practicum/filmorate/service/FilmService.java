@@ -13,7 +13,6 @@ import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
-import java.util.stream.Stream;
 
 @Service
 public class FilmService {
@@ -23,52 +22,68 @@ public class FilmService {
     private FilmStorage filmStorage;
 
     @Autowired
-    public FilmService (FilmStorage filmStorage){
+    public FilmService(FilmStorage filmStorage) {
 
         this.filmStorage = filmStorage;
     }
 
-    public Film addNewFilm (Film film) {
+    public Film addNewFilm(Film film) {
         if (validateFilm(film)) {
             if (film.getLikes() == null){
                 film.setLikes(new ArrayList<>());
             }
             return filmStorage.addNewFilm(film);
+        } else {
+            throw new ValidationException("Wrong film credentials");
         }
-        return null;
     }
 
-    public Film updateFilm (Film film) {
+    public Film updateFilm(Film film) {
         if (validateFilm(film) && checkFilmExist(film.getId())) {
             return filmStorage.updateFilm(film);
-
+        } else {
+            throw new ValidationException("Wrong film credentials");
         }
-        return null;
     }
 
-    public ArrayList<Film> getAllFilmsList (){
+    public ArrayList<Film> getAllFilmsList() {
         return filmStorage.getAllFilms();
     }
 
-    public void putLike (Integer filmId, Integer userId){
-        if (checkFilmExist(filmId) && !checkIfFilmWasPreviouslyLiked(filmId, userId)){
+    public Film getFilmById(int id) {
+        if (checkFilmExist(id)) {
+            return filmStorage.updateFilm(filmStorage.getFilms().get(id));
+        } else {
+            throw new InstanceNotFoundException("There is no such film");
+        }
+    }
+
+    public List<Integer> putLike(Integer filmId, Integer userId) {
+        if (!checkIfFilmWasPreviouslyLiked(filmId, userId)) {
             filmStorage.putNewLike(filmId, userId);
+            return filmStorage.getFilms().get(filmId).getLikes();
+        } else {
+            throw new InstanceNotFoundException("Cannot be liked");
         }
     }
 
-    public void removeLike (Integer filmId, Integer userId){
-        if (checkFilmExist(filmId) && checkIfFilmWasPreviouslyLiked(filmId, userId)){
+    public List<Integer> removeLike(Integer filmId, Integer userId) {
+        if (checkFilmExist(filmId) && checkIfFilmWasPreviouslyLiked(filmId, userId)) {
             filmStorage.removeLike(filmId, userId);
+            return filmStorage.getFilms().get(filmId).getLikes();
+        } else {
+            throw new ValidationException("The like cannot be removed");
         }
     }
 
-    public List <Film> getMostLikedFilms (Long limit)  {
+    public List<Film> getMostLikedFilms(Long limit) {
         List<Film> allFilms = new ArrayList<>();
-        for (int key : filmStorage.getFilms().keySet()){
+        for (int key : filmStorage.getFilms().keySet()) {
             allFilms.add(filmStorage.getFilms().get(key));
         }
+        System.out.println("1" + allFilms);
 
-        if (!allFilms.isEmpty()){
+        if (allFilms.isEmpty()) {
             throw new InstanceNotFoundException("There is no liked films");
         }
 
@@ -77,7 +92,8 @@ public class FilmService {
                 .limit(limit)
                 .collect(Collectors.toList());
 
-                return  mostLikedFilms;
+        System.out.println("2" + mostLikedFilms);
+        return mostLikedFilms;
     }
 
     private boolean validateFilm(Film film) throws ValidationException {
@@ -113,10 +129,8 @@ public class FilmService {
     public boolean checkIfFilmWasPreviouslyLiked (Integer filmId, Integer userId){
         if (filmStorage.getFilms().get(filmId).getLikes().contains(userId)){
             return true;
-        }
-        else {
-            log.info("The film was already liked by this user");
-            throw new InstanceNotFoundException("The film was already liked by this user");
+        } else {
+            return false;
         }
     }
 }

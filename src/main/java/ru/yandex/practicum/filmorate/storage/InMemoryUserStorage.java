@@ -24,6 +24,7 @@ public class InMemoryUserStorage implements UserStorage {
     public User addNewUser(User user) {
         count++;
         user.setId(count);
+        user.setFriends(new ArrayList<>());
         users.put(count, user);
         return users.get(count);
     }
@@ -66,7 +67,7 @@ public class InMemoryUserStorage implements UserStorage {
     }
 
     public List <User> getCommonFriendsList (Integer id, Integer friendId){
-        List <User> commonFriends = new ArrayList <User>();
+        List <User> commonFriends = new ArrayList <>();
         for (Integer friend : users.get(id).getFriends()) {
             if (users.get(friendId).getFriends().contains(friend)){
                 commonFriends.add(users.get(friend));

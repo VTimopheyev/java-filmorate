@@ -26,70 +26,83 @@ public class UserAndFilmController {
     }
 
     @PostMapping("/users")
-    public User createNewUser(@RequestBody User user) throws RuntimeException {
+    public User createNewUser(@RequestBody User user) {
         return userService.addNewUser(user);
     }
 
     @PutMapping("/users")
-    public User updateUser(@RequestBody User user) throws RuntimeException {
+    public User updateUser(@RequestBody User user) {
         return userService.updateUser(user);
     }
 
     @GetMapping("/users")
-    public List<User> getAllUsersList() throws RuntimeException {
+    public List<User> getAllUsersList() {
         return userService.getAllUsersList();
     }
 
-    @PutMapping ("/users/{id}/friends/{friendId}")
-    public void addFriend (@PathVariable int id, @PathVariable int friendId) throws RuntimeException{
+    @GetMapping("/users/{id}")
+    public User getUserById(@PathVariable int id) {
+        return userService.getUserById(id);
+    }
+
+    @PutMapping("/users/{id}/friends/{friendId}")
+    public void addFriend(@PathVariable int id, @PathVariable int friendId) throws RuntimeException {
         userService.addNewFriendToUser(id, friendId);
     }
 
-    @DeleteMapping ("/users/{id}/friends/{friendId}")
-    public void removeFromFriends (@PathVariable int id, @PathVariable int friendId){
+    @DeleteMapping("/users/{id}/friends/{friendId}")
+    public void removeFromFriends(@PathVariable int id, @PathVariable int friendId) {
         userService.removeUserFromFriends(id, friendId);
     }
 
-    @GetMapping ("/users/{id}/friends")
-    public List <User>  getFriendsList (@PathVariable int id){
-       return userService.getAllFriends(id);
+    @GetMapping("/users/{id}/friends")
+    public List<User> getFriendsList(@PathVariable int id) {
+        return userService.getAllFriends(id);
     }
 
-    @GetMapping ("/users/{id}/friends/common/{otherId}")
-    public List <User> getCommonFriends (@PathVariable int id, @PathVariable int otherId){
+    @GetMapping("/users/{id}/friends/common/{otherId}")
+    public List<User> getCommonFriends(@PathVariable int id, @PathVariable int otherId) {
         return userService.getCommonFriendsList(id, otherId);
     }
 
     @PostMapping("/films")
-    public Film createNewFilm(@RequestBody Film film) throws RuntimeException {
+    public Film createNewFilm(@RequestBody Film film) {
         return filmService.addNewFilm(film);
     }
 
     @PutMapping("/films")
-    public Film updateFilm(@RequestBody Film film) throws RuntimeException {
+    public Film updateFilm(@RequestBody Film film) {
         return filmService.updateFilm(film);
     }
 
-    @GetMapping ("/films")
+    @GetMapping("/films")
     public ArrayList<Film> getAllFilms() {
         return filmService.getAllFilmsList();
     }
 
-    @GetMapping ("/films/{id}/like/{userId}")
-    public void putLikeToFilm (@PathVariable int id, @PathVariable int userId) throws RuntimeException {
-        if (filmService.checkFilmExist(id) && userService.checkUserExist(userId))
-        filmService.putLike(id, userId);
+    @GetMapping("/films/{id}")
+    public Film getFilmById(@PathVariable int id) {
+        return filmService.getFilmById(id);
     }
 
-    @DeleteMapping ("/films/{id}/like/{userId}")
-    public void removeLike (@PathVariable int id, @PathVariable int userId) throws RuntimeException {
+    @PutMapping("/films/{id}/like/{userId}")
+    public List<Integer> putLikeToFilm(@PathVariable int id, @PathVariable int userId) {
         if (filmService.checkFilmExist(id) && userService.checkUserExist(userId)) {
-            filmService.removeLike(id, userId);
+            return filmService.putLike(id, userId);
         }
+        return null;
     }
 
-    @GetMapping ("/films/popular")
-    public List<Film> getMostLikedFilms (@RequestParam (required = false, defaultValue = "10") Long count){
+    @DeleteMapping("/films/{id}/like/{userId}")
+    public List<Integer> removeLike(@PathVariable int id, @PathVariable int userId) {
+        if (filmService.checkFilmExist(id) && userService.checkUserExist(userId)) {
+            return filmService.removeLike(id, userId);
+        }
+        return null;
+    }
+
+    @GetMapping("/films/popular")
+    public List<Film> getMostLikedFilms(@RequestParam(required = false, defaultValue = "10") Long count) {
         return filmService.getMostLikedFilms(count);
     }
 }
