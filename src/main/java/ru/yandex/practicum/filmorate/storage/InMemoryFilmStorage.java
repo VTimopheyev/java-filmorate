@@ -29,8 +29,8 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     public Film updateFilm(Film film) {
-        if (film.getLikesList() == null) {
-            film.setLikesList(new ArrayList<>());
+        if (film.getLikes() == null) {
+            film.setLikes(new ArrayList<>());
         }
         films.put(film.getId(), film);
         log.info("Film was updated successfully");
@@ -47,12 +47,12 @@ public class InMemoryFilmStorage implements FilmStorage {
     }
 
     public void putNewLike(Integer filmId, Integer userId) {
-        films.get(filmId).getLikesList().add(userId);
+        films.get(filmId).getLikes().add(userId);
         log.info("Like added");
     }
 
     public void removeLike(Integer filmId, Integer userId) {
-        films.get(filmId).getLikesList().remove(userId);
+        films.get(filmId).getLikes().remove(userId);
         log.info("Like removed");
     }
 }

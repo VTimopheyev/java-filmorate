@@ -19,7 +19,7 @@ public class FilmService {
 
     private final static Logger log = LoggerFactory.getLogger(FilmService.class);
     private final LocalDate earliestReleaseDate = LocalDate.of(1895, 12, 28);
-    FilmStorage filmStorage;
+    private FilmStorage filmStorage;
 
     @Autowired
     public FilmService(FilmStorage filmStorage) {
@@ -29,8 +29,8 @@ public class FilmService {
 
     public Film addNewFilm(Film film) {
         if (validateFilm(film)) {
-            if (film.getLikesList() == null) {
-                film.setLikesList(new ArrayList<>());
+            if (film.getLikes() == null) {
+                film.setLikes(new ArrayList<>());
             }
             return filmStorage.addNewFilm(film);
         } else {
@@ -61,7 +61,7 @@ public class FilmService {
     public List<Integer> putLike(Integer filmId, Integer userId) {
         if (!checkIfFilmWasPreviouslyLiked(filmId, userId)) {
             filmStorage.putNewLike(filmId, userId);
-            return filmStorage.getFilms().get(filmId).getLikesList();
+            return filmStorage.getFilms().get(filmId).getLikes();
         } else {
             throw new InstanceNotFoundException("Cannot be liked");
         }
@@ -70,7 +70,7 @@ public class FilmService {
     public List<Integer> removeLike(Integer filmId, Integer userId) {
         if (checkFilmExist(filmId) && checkIfFilmWasPreviouslyLiked(filmId, userId)) {
             filmStorage.removeLike(filmId, userId);
-            return filmStorage.getFilms().get(filmId).getLikesList();
+            return filmStorage.getFilms().get(filmId).getLikes();
         } else {
             throw new ValidationException("The like cannot be removed");
         }
@@ -81,18 +81,16 @@ public class FilmService {
         for (int key : filmStorage.getFilms().keySet()) {
             allFilms.add(filmStorage.getFilms().get(key));
         }
-        System.out.println("1" + allFilms);
 
         if (allFilms.isEmpty()) {
             throw new InstanceNotFoundException("There is no liked films");
         }
 
         List<Film> mostLikedFilms = allFilms.stream()
-                .sorted((o1, o2) -> o2.getLikesList().size() - o1.getLikesList().size())
+                .sorted((o1, o2) -> o2.getLikes().size() - o1.getLikes().size())
                 .limit(limit)
                 .collect(Collectors.toList());
 
-        System.out.println("2" + mostLikedFilms);
         return mostLikedFilms;
     }
 
@@ -127,7 +125,7 @@ public class FilmService {
     }
 
     public boolean checkIfFilmWasPreviouslyLiked(Integer filmId, Integer userId) {
-        if (filmStorage.getFilms().get(filmId).getLikesList().contains(userId)) {
+        if (filmStorage.getFilms().get(filmId).getLikes().contains(userId)) {
             return true;
         } else {
             return false;
