@@ -10,7 +10,6 @@ import ru.yandex.practicum.filmorate.service.UserService;
 import java.util.List;
 
 @RestController
-@Component
 public class UserController {
     private UserService userService;
     private FilmService filmService;

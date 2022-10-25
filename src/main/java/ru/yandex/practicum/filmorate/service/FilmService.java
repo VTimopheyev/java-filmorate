@@ -125,10 +125,6 @@ public class FilmService {
     }
 
     public boolean checkIfFilmWasPreviouslyLiked(Integer filmId, Integer userId) {
-        if (filmStorage.getFilms().get(filmId).getLikes().contains(userId)) {
-            return true;
-        } else {
-            return false;
-        }
+        return filmStorage.getFilms().get(filmId).getLikes().contains(userId);
     }
 }

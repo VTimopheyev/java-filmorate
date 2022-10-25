@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@Component
 public class FilmController {
     private UserService userService;
     private FilmService filmService;
