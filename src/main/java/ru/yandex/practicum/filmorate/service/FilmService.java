@@ -32,7 +32,8 @@ public class FilmService {
 
     public Film addNewFilm(Film film) {
         if (!filmStorage.filmExists(film.getId())) {
-            return filmStorage.getFilm(filmStorage.addNewFilm(film));
+            int filmId = filmStorage.addNewFilm(film);
+            return filmStorage.getFilm (filmId);
         } else {
             throw new ValidationException("Wrong film credentials");
         }

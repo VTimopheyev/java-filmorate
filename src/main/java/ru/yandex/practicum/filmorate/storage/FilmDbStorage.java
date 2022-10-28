@@ -28,8 +28,8 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public boolean filmExists(Integer id) {
-        String sqlQuery = "select count(*) from films where film_id = ?";
 
+        String sqlQuery = "select count(*) from films where film_id = ?";
         Integer result = jdbcTemplate.queryForObject(sqlQuery, Integer.class, id);
 
         return result == 1;
@@ -44,7 +44,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public Film getFilm(int id) {
-        String sqlQuery = "select film_id, name, description, duration, release_date, mpa_rating_id" +
+        String sqlQuery = "select film_id, name, description, duration, release_date, mpa_id " +
                 "from films where film_id = ?";
 
         Film film = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToFilm, id);
@@ -55,21 +55,21 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public Rating getRating(Integer filmId) {
-        String sqlQuery = "select films.mpa_rating_id, mpa_rating.mpa_name" +
-                "from films" + "join mpa_rating on films.mpa_rating_id = mpa_rating.mpa_rating_id" + "where film_id = ?";
+        String sqlQuery = "select films.mpa_id, mpa_rating.mpa_name" +
+                " from films " + " join mpa_rating on films.mpa_id = mpa_rating.mpa_id " + " where film_id = ? ";
 
         return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToRating, filmId);
     }
 
     public List<Genre> getGenres(Integer id) {
-        String sqlQuery = "select films_by_genres.genre_id, genres.name" +
-                "from films_by_genres" + "join genres on films_by_genres.genre_id = genres.genre_id" + "where film_id = ?";
+        String sqlQuery = "select films_by_genre.genre_id, genres.name " +
+                " from films_by_genre" + " join genres on films_by_genre.genre_id = genres.genre_id" + " where film_id = ?";
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToGenre, id);
     }
 
     public List<Film> getAllFilms() {
-        String sqlQuery = "select film_id, name, description, duration, release_date, mpa_rating_id from films";
+        String sqlQuery = "select film_id, name, description, duration, release_date, mpa_id from films";
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
     }
@@ -81,13 +81,14 @@ public class FilmDbStorage implements FilmStorage {
     }
 
 
-    /*public Film addNewFilm(Film film) {
-        String sqlQuery = "insert into film (name, description, duration, release_date, mpa_id)" +
+    /*public int addNewFilm(Film film) {
+        String sqlQuery = "insert into films (name, description, duration, release_date, mpa_id)" +
                 "values (?, ?, ?, ?, ?)";
 
         jdbcTemplate.update(sqlQuery, film.getName(), film.getDescription(), film.getDuration(), film.getReleaseDate(),
                 film.getMpa().getId());
         log.info("Film added");
+        return 1;
     }*/
 
     public int addNewFilm(Film film) {
