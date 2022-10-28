@@ -6,6 +6,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
+import org.springframework.stereotype.Component;
 import ru.yandex.practicum.filmorate.model.Film;
 import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Like;
@@ -15,7 +16,7 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.List;
 
-@Qualifier
+@Component
 public class FilmDbStorage implements FilmStorage {
 
     private final static Logger log = LoggerFactory.getLogger(InMemoryFilmStorage.class);
@@ -43,7 +44,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public Film getFilm(int id) {
-        String sqlQuery = "select film_id, name, description, duration, release_date, MPA_rating_id" +
+        String sqlQuery = "select film_id, name, description, duration, release_date, mpa_rating_id" +
                 "from films where film_id = ?";
 
         Film film = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToFilm, id);
@@ -61,20 +62,20 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public List<Genre> getGenres(Integer id) {
-        String sqlQuery = "select films_by_genres.genre_id, genre.name" +
-                "from films_by_genres" + "join genre on films_by_genres.genre_id = genre.genre_id" + "where film_id = ?";
+        String sqlQuery = "select films_by_genres.genre_id, genres.name" +
+                "from films_by_genres" + "join genres on films_by_genres.genre_id = genres.genre_id" + "where film_id = ?";
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToGenre, id);
     }
 
     public List<Film> getAllFilms() {
-        String sqlQuery = "select film_id, name, description, duration, release_date, MPA_rating_id from films";
+        String sqlQuery = "select film_id, name, description, duration, release_date, mpa_rating_id from films";
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
     }
 
     public List<Genre> getAllGenres() {
-        String sqlQuery = "select genre_id, name from genre";
+        String sqlQuery = "select genre_id, name from genres";
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToGenre);
     }

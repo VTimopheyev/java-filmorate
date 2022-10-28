@@ -9,16 +9,11 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-@Component
-public class InMemoryFilmStorage implements FilmStorage {
-
+public class InMemoryFilmStorage  {
+/*
     private HashMap<Integer, Film> films = new HashMap<>();
     private final static Logger log = LoggerFactory.getLogger(InMemoryFilmStorage.class);
     private int count = 0;
-
-    /*public HashMap<Integer, Film> getFilms() {
-        return films;
-    }*/
 
 
     public int addNewFilm(Film film) {
@@ -56,4 +51,5 @@ public class InMemoryFilmStorage implements FilmStorage {
         films.get(filmId).getLikes().remove(userId);
         log.info("Like removed");
     }
+    */
 }
