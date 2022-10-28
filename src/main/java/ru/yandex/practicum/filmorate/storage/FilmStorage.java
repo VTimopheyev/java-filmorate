@@ -1,21 +1,40 @@
 package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.Film;
+import ru.yandex.practicum.filmorate.model.Genre;
+import ru.yandex.practicum.filmorate.model.Like;
+import ru.yandex.practicum.filmorate.model.Rating;
 
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 public interface FilmStorage {
-    Film addNewFilm(Film film);
+    int addNewFilm(Film film);
+
+    boolean filmExists(Integer id);
 
     Film updateFilm(Film film);
 
-    Map<Integer, Film> getFilms();
+   // Map<Integer, Film> getFilms();
 
-    ArrayList<Film> getAllFilms();
+    List<Film> getAllFilms();
 
     void putNewLike(Integer filmId, Integer userId);
 
     void removeLike(Integer filmId, Integer userId);
+
+    Film getFilm(int id);
+
+    boolean likedBefore(Integer filmId, Integer userId);
+
+    List<Like> getLikes(Integer filmId);
+
+    Rating getRating(Integer filmId);
+
+    List<Rating> getAllRatings();
+
+    List<Genre> getGenres(Integer filmId);
+
+    List<Genre> getAllGenres();
+
 }
