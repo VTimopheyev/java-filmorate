@@ -27,7 +27,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public boolean filmExists(Integer id) {
-        String sqlQuery = "select count(*) from film where film_id = ?";
+        String sqlQuery = "select count(*) from films where film_id = ?";
 
         Integer result = jdbcTemplate.queryForObject(sqlQuery, Integer.class, id);
 
@@ -44,7 +44,7 @@ public class FilmDbStorage implements FilmStorage {
 
     public Film getFilm(int id) {
         String sqlQuery = "select film_id, name, description, duration, release_date, MPA_rating_id" +
-                "from film where film_id = ?";
+                "from films where film_id = ?";
 
         Film film = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToFilm, id);
         film.setGenres(getGenres(id));
@@ -54,8 +54,8 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public Rating getRating(Integer filmId) {
-        String sqlQuery = "select film.mpa_rating_id, mpa_rating.mpa_name" +
-                "from film" + "join mpa_rating on film.mpa_rating_id = mpa_rating.mpa_rating_id" + "where film_id = ?";
+        String sqlQuery = "select films.mpa_rating_id, mpa_rating.mpa_name" +
+                "from films" + "join mpa_rating on films.mpa_rating_id = mpa_rating.mpa_rating_id" + "where film_id = ?";
 
         return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToRating, filmId);
     }
@@ -68,7 +68,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public List<Film> getAllFilms() {
-        String sqlQuery = "select film_id, name, description, duration, release_date, MPA_rating_id from film";
+        String sqlQuery = "select film_id, name, description, duration, release_date, MPA_rating_id from films";
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
     }
@@ -91,7 +91,7 @@ public class FilmDbStorage implements FilmStorage {
 
     public int addNewFilm(Film film) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
-                .withTableName("film")
+                .withTableName("films")
                 .usingGeneratedKeyColumns("film_id");
 
         int filmId = simpleJdbcInsert.executeAndReturnKey(film.toMap()).intValue();
@@ -104,7 +104,7 @@ public class FilmDbStorage implements FilmStorage {
 
 
     public Film updateFilm(Film film) {
-        String sqlQuery = "update film set " + "name = ?, description = ?, duration = ?, release_date = ?,  " +
+        String sqlQuery = "update films set " + "name = ?, description = ?, duration = ?, release_date = ?,  " +
                 "mpa_id = ?" + "where id = ?";
         jdbcTemplate.update(sqlQuery
                 , film.getName()
@@ -124,7 +124,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public boolean removeFilm(Integer id) {
-        String sqlQuery = "delete from film where id = ?";
+        String sqlQuery = "delete from films where id = ?";
 
         return jdbcTemplate.update(sqlQuery, id) > 0;
     }

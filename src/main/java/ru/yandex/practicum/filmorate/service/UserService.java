@@ -20,7 +20,7 @@ import java.util.List;
 @Service
 public class UserService {
 
-    private final UserStorage userStorage;
+    private  UserStorage userStorage;
     private final static Logger log = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
@@ -30,6 +30,15 @@ public class UserService {
 
     public boolean checkUserExist(Integer userId) {
         return userStorage.checkUserExist(userId);
+    }
+
+    public User getUser (Integer userId){
+        if (checkUserExist(userId)){
+            return userStorage.getUser(userId);
+        }
+        else {
+            throw new InstanceNotFoundException("No such user");
+        }
     }
 
     public User addNewUser(User user) throws ValidationException {
