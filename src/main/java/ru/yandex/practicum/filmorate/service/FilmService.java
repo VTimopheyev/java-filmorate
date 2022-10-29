@@ -81,18 +81,14 @@ public class FilmService {
         for (int key : filmStorage.getFilms().keySet()) {
             allFilms.add(filmStorage.getFilms().get(key));
         }
-        System.out.println("1" + allFilms);
-
         if (allFilms.isEmpty()) {
             throw new InstanceNotFoundException("There is no liked films");
         }
-
         List <Film> mostLikedFilms = allFilms.stream()
-                .sorted((o1, o2) -> o1.getLikes().size() - o2.getLikes().size())
+                .sorted((o1, o2) -> o2.getLikes().size() - o1.getLikes().size())
                 .limit(limit)
                 .collect(Collectors.toList());
 
-        System.out.println("2" + mostLikedFilms);
         return mostLikedFilms;
     }
 
@@ -125,6 +121,7 @@ public class FilmService {
             throw new InstanceNotFoundException("No such film to update");
         }
     }
+
 
     public boolean checkIfFilmWasPreviouslyLiked (Integer filmId, Integer userId){
         if (filmStorage.getFilms().get(filmId).getLikes().contains(userId)){
