@@ -4,8 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 
-import ru.yandex.practicum.filmorate.model.Film;
-import ru.yandex.practicum.filmorate.model.User;
+import ru.yandex.practicum.filmorate.model.*;
 
 import ru.yandex.practicum.filmorate.service.FilmService;
 import ru.yandex.practicum.filmorate.service.UserService;
@@ -14,7 +13,6 @@ import java.util.ArrayList;
 import java.util.List;
 
 @RestController
-@Component
 public class FilmController {
     private UserService userService;
     private FilmService filmService;
@@ -36,7 +34,7 @@ public class FilmController {
     }
 
     @GetMapping("/films")
-    public ArrayList<Film> getAllFilms() {
+    public List<Film> getAllFilms() {
         return filmService.getAllFilmsList();
     }
 
@@ -46,7 +44,7 @@ public class FilmController {
     }
 
     @PutMapping("/films/{id}/like/{userId}")
-    public List<Integer> putLikeToFilm(@PathVariable int id, @PathVariable int userId) {
+    public List<Like> putLikeToFilm(@PathVariable int id, @PathVariable int userId) {
         if (filmService.checkFilmExist(id) && userService.checkUserExist(userId)) {
             return filmService.putLike(id, userId);
         }
@@ -54,7 +52,7 @@ public class FilmController {
     }
 
     @DeleteMapping("/films/{id}/like/{userId}")
-    public List<Integer> removeLike(@PathVariable int id, @PathVariable int userId) {
+    public List<Like> removeLike(@PathVariable int id, @PathVariable int userId) {
         if (filmService.checkFilmExist(id) && userService.checkUserExist(userId)) {
             return filmService.removeLike(id, userId);
         }
@@ -64,6 +62,26 @@ public class FilmController {
     @GetMapping("/films/popular")
     public List<Film> getMostLikedFilms(@RequestParam(required = false, defaultValue = "10") Long count) {
         return filmService.getMostLikedFilms(count);
+    }
+
+    @GetMapping("/mpa/{id}")
+    public Rating getFilmRating(@PathVariable int id) {
+        return filmService.getFilmRating(id);
+    }
+
+    @GetMapping("/mpa")
+    public List <Rating> getAllRatings() {
+        return filmService.getAllRatings();
+    }
+
+    @GetMapping("/genres/{id}")
+    public List <Genre> getFilmGenres(@PathVariable int id) {
+        return filmService.getFilmGenres(id);
+    }
+
+    @GetMapping("/genres")
+    public List <Genre> getAllGenres() {
+        return filmService.getAllGenres();
     }
 }
 

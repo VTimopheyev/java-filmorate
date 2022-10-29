@@ -2,18 +2,35 @@ package ru.yandex.practicum.filmorate.storage;
 
 import ru.yandex.practicum.filmorate.model.User;
 
-import java.util.ArrayList;
-import java.util.HashMap;
+import java.sql.ResultSet;
+import java.sql.SQLException;
 import java.util.List;
 
 public interface UserStorage {
-    User addNewUser(User user);
-    User updateUser (User user);
-    HashMap<Integer, User> getUsers();
-    List<User> sendAllUsersList();
-    void addNewFriendToUser(Integer id, Integer friendId);
-    void removeUserFromFriends(Integer id, Integer friendId);
-    List<User> getCommonFriendsList(Integer id, Integer friendId);
+    boolean checkFriendshipExist(Integer userId, Integer friendId);
 
-    List<User> getAllFriendsOfUser(int id);
+    boolean checkFriendshipRequestedByUser(Integer userId, Integer friendId);
+
+    void removeFriendshipRequest(Integer userId, Integer friendId);
+
+    int addNewUser(User user);
+    User updateUser (User user);
+
+    void addFriend(Integer userId, Integer friendId);
+
+    List<User> getAllFriendsOfUser(Integer userId);
+
+    void removeUserFromFriends(Integer id, Integer friendId);
+
+    User getUser(int addNewUser);
+
+    List<User> getAllUsers();
+
+    boolean checkUserExist(Integer id);
+
+    boolean checkIfUserInFriendsList(Integer userId, Integer friendId);
+
+    void approveFriendShip(Integer userId, Integer friendId);
+
+    User mapRowToUser(ResultSet resultSet, int rowNum) throws SQLException;
 }

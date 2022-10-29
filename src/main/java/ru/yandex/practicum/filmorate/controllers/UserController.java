@@ -1,7 +1,6 @@
 package ru.yandex.practicum.filmorate.controllers;
 
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.stereotype.Component;
 import org.springframework.web.bind.annotation.*;
 import ru.yandex.practicum.filmorate.model.User;
 import ru.yandex.practicum.filmorate.service.FilmService;
@@ -10,7 +9,6 @@ import ru.yandex.practicum.filmorate.service.UserService;
 import java.util.List;
 
 @RestController
-@Component
 public class UserController {
     private UserService userService;
     private FilmService filmService;
@@ -37,7 +35,7 @@ public class UserController {
 
     @GetMapping("/users/{id}")
     public User getUserById(@PathVariable int id) {
-        return userService.getUserById(id);
+        return userService.getUser(id);
     }
 
     @PutMapping("/users/{id}/friends/{friendId}")

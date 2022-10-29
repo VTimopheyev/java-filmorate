@@ -11,9 +11,8 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
-@Component
-public class InMemoryUserStorage implements UserStorage {
-    private HashMap<Integer, User> users = new HashMap<>();
+public class InMemoryUserStorage  {
+  /*  private HashMap<Integer, User> users = new HashMap<>();
     private final static Logger log = LoggerFactory.getLogger(InMemoryUserStorage.class);
     private int count = 0;
 
@@ -21,7 +20,7 @@ public class InMemoryUserStorage implements UserStorage {
         return users;
     }
 
-    public User addNewUser(User user) {
+    public int addNewUser(User user) {
         count++;
         user.setId(count);
         user.setFriends(new ArrayList<>());
@@ -74,5 +73,5 @@ public class InMemoryUserStorage implements UserStorage {
             }
         }
         return commonFriends;
-    }
+    }*/
 }
