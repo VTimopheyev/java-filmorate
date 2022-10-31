@@ -29,7 +29,12 @@ public class UserService {
     }
 
     public boolean checkUserExist(Integer userId) {
-        return userStorage.checkUserExist(userId);
+        if (userStorage.checkUserExist(userId)){
+            return true;
+        }
+        else {
+            throw new InstanceNotFoundException("No such user");
+        }
     }
 
     public User getUser (Integer userId){
@@ -68,14 +73,14 @@ public class UserService {
         return userStorage.getAllUsers();
     }
 
-    public void addNewFriendToUser(Integer userId, Integer friendId) {
+    public List <User> addNewFriendToUser(Integer userId, Integer friendId) {
         if (!checkUserExist(userId) || (!checkUserExist(friendId))) {
             throw new InstanceNotFoundException("No such user or friend");
         }
         if (userStorage.checkFriendshipExist(userId, friendId) || userStorage.checkFriendshipRequestedByUser(userId, friendId)) {
             throw new ValidationException("Friendship already requested or confirmed");
         }
-        userStorage.addFriend(userId, friendId);
+        return userStorage.addFriend(userId, friendId);
     }
 
     public void removeFriend(Integer userId, Integer friendId) {

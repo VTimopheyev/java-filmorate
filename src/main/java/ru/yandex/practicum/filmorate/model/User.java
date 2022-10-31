@@ -16,7 +16,7 @@ public class User {
     private final String email;
     private final String login;
     private String name;
-    private final Date birthday;
+    private Date birthday;
     private List<Integer> friends;
     private List<Integer> friendshipRequests;
 
@@ -25,7 +25,7 @@ public class User {
         values.put("email", email);
         values.put("login", login);
         values.put("name", name);
-        values.put("birthday", birthday);
+        values.put("birthdate", birthday);
 
         return values;
     }

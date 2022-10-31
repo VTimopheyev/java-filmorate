@@ -16,9 +16,11 @@ public interface UserStorage {
     int addNewUser(User user);
     User updateUser (User user);
 
-    void addFriend(Integer userId, Integer friendId);
+    List <User> addFriend(Integer userId, Integer friendId);
 
     List<User> getAllFriendsOfUser(Integer userId);
+
+    List<Integer> getAllFriendsId(Integer userId);
 
     void removeUserFromFriends(Integer id, Integer friendId);
 
@@ -31,6 +33,8 @@ public interface UserStorage {
     boolean checkIfUserInFriendsList(Integer userId, Integer friendId);
 
     void approveFriendShip(Integer userId, Integer friendId);
+
+    void addFriendshipRequest(Integer userId, Integer friendId);
 
     User mapRowToUser(ResultSet resultSet, int rowNum) throws SQLException;
 }

@@ -65,8 +65,8 @@ public class FilmController {
     }
 
     @GetMapping("/mpa/{id}")
-    public Rating getFilmRating(@PathVariable int id) {
-        return filmService.getFilmRating(id);
+    public Rating getMpaRating(@PathVariable int id) {
+        return filmService.getMpaRating(id);
     }
 
     @GetMapping("/mpa")
@@ -75,8 +75,8 @@ public class FilmController {
     }
 
     @GetMapping("/genres/{id}")
-    public List <Genre> getFilmGenres(@PathVariable int id) {
-        return filmService.getFilmGenres(id);
+    public Genre getGenre(@PathVariable int id) {
+        return filmService.getGenre(id);
     }
 
     @GetMapping("/genres")

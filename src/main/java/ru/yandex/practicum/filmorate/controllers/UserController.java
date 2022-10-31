@@ -39,8 +39,8 @@ public class UserController {
     }
 
     @PutMapping("/users/{id}/friends/{friendId}")
-    public void addFriend(@PathVariable int id, @PathVariable int friendId) throws RuntimeException {
-        userService.addNewFriendToUser(id, friendId);
+    public List <User> addFriend(@PathVariable int id, @PathVariable int friendId) throws RuntimeException {
+        return userService.addNewFriendToUser(id, friendId);
     }
 
     @DeleteMapping("/users/{id}/friends/{friendId}")

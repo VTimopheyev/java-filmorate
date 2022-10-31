@@ -3,7 +3,6 @@ package ru.yandex.practicum.filmorate.storage;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.beans.factory.annotation.Qualifier;
 import org.springframework.jdbc.core.JdbcTemplate;
 import org.springframework.jdbc.core.simple.SimpleJdbcInsert;
 import org.springframework.stereotype.Component;
@@ -14,6 +13,7 @@ import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.util.ArrayList;
 import java.util.List;
 
 @Component
@@ -35,7 +35,7 @@ public class FilmDbStorage implements FilmStorage {
         return result == 1;
     }
 
-    public boolean likedBefore (Integer filmId, Integer userId) {
+    public boolean likedBefore(Integer filmId, Integer userId) {
         String sqlQuery = "select count(*) from likes where film_id = ? and user_id = ?";
 
         Integer result = jdbcTemplate.queryForObject(sqlQuery, Integer.class, filmId, userId);
@@ -44,40 +44,89 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public Film getFilm(int id) {
-        String sqlQuery = "select film_id, name, description, duration, release_date, mpa_id " +
+        String sqlQuery = "select film_id, name, description, duration, release_date " +
                 "from films where film_id = ?";
-
         Film film = jdbcTemplate.queryForObject(sqlQuery, this::mapRowToFilm, id);
+
+        sqlQuery = "select mpa_id " +
+                "from films where film_id = ?";
+        Integer ratingId = jdbcTemplate.queryForObject(sqlQuery, Integer.class, id);
+
         film.setGenres(getGenres(id));
-        film.setMpa(getRating(id));
+        film.setMpa(getRating(ratingId));
 
         return film;
     }
 
-    public Rating getRating(Integer filmId) {
+    /*public Rating getRating(Integer filmId) {
         String sqlQuery = "select films.mpa_id, mpa_rating.mpa_name" +
                 " from films " + " join mpa_rating on films.mpa_id = mpa_rating.mpa_id " + " where film_id = ? ";
 
         return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToRating, filmId);
+    }*/
+
+    public Rating getRating(Integer id) {
+        String sqlQuery = "select mpa_id, mpa_name " +
+                "from mpa_rating where mpa_id = ?";
+
+        return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToRating, id);
+    }
+
+    public boolean checkRating(Integer id) {
+        String sqlQuery = "select count(*) from mpa_rating where mpa_id = ?";
+        Integer result = jdbcTemplate.queryForObject(sqlQuery, Integer.class, id);
+
+        return result == 1;
     }
 
     public List<Genre> getGenres(Integer id) {
         String sqlQuery = "select films_by_genre.genre_id, genres.name " +
                 " from films_by_genre" + " join genres on films_by_genre.genre_id = genres.genre_id" + " where film_id = ?";
 
-        return jdbcTemplate.query(sqlQuery, this::mapRowToGenre, id);
+        List <Genre> genres = jdbcTemplate.query(sqlQuery, this::mapRowToGenre, id);
+        List <Genre> uniqueGenres = new ArrayList<>();
+        for (Genre g : genres){
+            if (!uniqueGenres.contains(g)){
+                uniqueGenres.add(g);
+            }
+        }
+        return uniqueGenres;
     }
 
     public List<Film> getAllFilms() {
         String sqlQuery = "select film_id, name, description, duration, release_date, mpa_id from films";
 
-        return jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
+        List<Film> films = jdbcTemplate.query(sqlQuery, this::mapRowToFilm);
+
+        for (Film f : films) {
+            f.setGenres(getGenres(f.getId()));
+
+            sqlQuery = "select mpa_id " +
+                    "from films where film_id = ?";
+            Integer ratingId = jdbcTemplate.queryForObject(sqlQuery, Integer.class, f.getId());
+            f.setMpa(getRating(ratingId));
+        }
+
+        return films;
     }
 
     public List<Genre> getAllGenres() {
         String sqlQuery = "select genre_id, name from genres";
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToGenre);
+    }
+
+    public Genre getGenre(Integer id) {
+        String sqlQuery = "select genre_id, name from genres" + " where genre_id = ?";
+
+        return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToGenre, id);
+    }
+
+    public boolean checkGenreExist(Integer id) {
+        String sqlQuery = "select count(*) from genres where genre_id = ?";
+        Integer result = jdbcTemplate.queryForObject(sqlQuery, Integer.class, id);
+
+        return result == 1;
     }
 
 
@@ -106,8 +155,8 @@ public class FilmDbStorage implements FilmStorage {
 
 
     public Film updateFilm(Film film) {
-        String sqlQuery = "update films set " + "name = ?, description = ?, duration = ?, release_date = ?,  " +
-                "mpa_id = ?" + "where id = ?";
+        String sqlQuery = "update films set " + "name = ?, description = ?, duration = ?, release_date = ?, mpa_id = ?"
+                + " where film_id = ?";
         jdbcTemplate.update(sqlQuery
                 , film.getName()
                 , film.getDescription()
@@ -126,14 +175,14 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public boolean removeFilm(Integer id) {
-        String sqlQuery = "delete from films where id = ?";
+        String sqlQuery = "delete from films where film_id = ?";
 
         return jdbcTemplate.update(sqlQuery, id) > 0;
     }
 
     public void putNewLike(Integer filmId, Integer userId) {
         String sqlQuery = "insert into likes (film_id, user_id)" +
-                "values (?, ?)";
+                " values (?, ?)";
 
         jdbcTemplate.update(sqlQuery, filmId, userId);
         log.info("Like added");
@@ -147,14 +196,14 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     public List<Like> getLikes(Integer filmId) {
-        String sqlQuery = "select user_id, film_id" + "from likes where film_id = ?";
+        String sqlQuery = "select user_id, film_id" + " from likes where film_id = ?";
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToLike, filmId);
     }
 
     public List<Rating> getAllRatings() {
         String sqlQuery = "select mpa_id, mpa_name" +
-                "from mpa_rating";
+                " from mpa_rating";
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToRating);
     }
@@ -165,10 +214,11 @@ public class FilmDbStorage implements FilmStorage {
     }*/
 
     private void updateGenresForFilm(List<Genre> list, Integer FilmId) {
+
         for (Genre g : list) {
             int genreId = g.getId();
-            String sqlQuery = "insert into films_by_genre (film_id, genre_id)" +
-                    "values (?, ?)";
+            String sqlQuery = "insert into films_by_genre (film_id, genre_id) " +
+                    " values (?, ?)";
 
             jdbcTemplate.update(sqlQuery, FilmId, genreId);
             log.info("Genre added");
@@ -176,7 +226,7 @@ public class FilmDbStorage implements FilmStorage {
     }
 
     private void clearAllGenres(Integer filmId) {
-        String sqlQuery = "delete from films_by_genre where id = ?";
+        String sqlQuery = "delete from films_by_genre where film_id = ?";
         jdbcTemplate.update(sqlQuery, filmId);
         log.info("Genres cleared out");
     }
@@ -207,14 +257,14 @@ public class FilmDbStorage implements FilmStorage {
         // It is used to map each row of a ResultSet to an object.
         return Genre.builder()
                 .id(resultSet.getInt("genre_id"))
-                .name(resultSet.getString("genre_name"))
+                .name(resultSet.getString("name"))
                 .build();
     }
 
     private Like mapRowToLike(ResultSet resultSet, int rowNum) throws SQLException {
         // It is used to map each row of a ResultSet to an object.
         return Like.builder()
-                .filmId(resultSet.getInt("genre_id"))
+                .filmId(resultSet.getInt("film_id"))
                 .userId(resultSet.getInt("user_id"))
                 .build();
     }

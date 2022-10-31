@@ -6,7 +6,6 @@ import ru.yandex.practicum.filmorate.model.Like;
 import ru.yandex.practicum.filmorate.model.Rating;
 
 import java.util.List;
-import java.util.Map;
 
 public interface FilmStorage {
     int addNewFilm(Film film);
@@ -29,7 +28,7 @@ public interface FilmStorage {
 
     List<Like> getLikes(Integer filmId);
 
-    Rating getRating(Integer filmId);
+    Rating getRating(Integer id);
 
     List<Rating> getAllRatings();
 
@@ -37,4 +36,9 @@ public interface FilmStorage {
 
     List<Genre> getAllGenres();
 
+    boolean checkRating(Integer id);
+
+    boolean checkGenreExist (Integer id);
+
+    Genre getGenre(Integer id);
 }

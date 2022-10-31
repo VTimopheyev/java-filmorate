@@ -31,7 +31,7 @@ public class FilmService {
     }
 
     public Film addNewFilm(Film film) {
-        if (!filmStorage.filmExists(film.getId())) {
+        if (!filmStorage.filmExists(film.getId()) && validateFilm(film)) {
             int filmId = filmStorage.addNewFilm(film);
             return filmStorage.getFilm (filmId);
         } else {
@@ -81,7 +81,7 @@ public class FilmService {
         List<Film> allFilms = filmStorage.getAllFilms();
 
         if (allFilms.isEmpty()) {
-            throw new InstanceNotFoundException("There is no liked films");
+            throw new InstanceNotFoundException("There is no films");
         }
 
         for (Film f : allFilms) {
@@ -96,11 +96,11 @@ public class FilmService {
         return mostLikedFilms;
     }
 
-    public Rating getFilmRating(Integer filmId) {
-        if (checkFilmExist(filmId)) {
-            return filmStorage.getRating(filmId);
+    public Rating getMpaRating(Integer id) {
+        if (filmStorage.checkRating(id)) {
+            return filmStorage.getRating(id);
         } else {
-            throw new InstanceNotFoundException("There is no such film");
+            throw new InstanceNotFoundException("There is no such rating");
         }
     }
 
@@ -108,11 +108,11 @@ public class FilmService {
         return filmStorage.getAllRatings();
     }
 
-    public List<Genre> getFilmGenres(Integer filmId) {
-        if (checkFilmExist(filmId)) {
-            return filmStorage.getGenres(filmId);
+    public Genre getGenre (Integer id) {
+        if (filmStorage.checkGenreExist(id)) {
+            return filmStorage.getGenre(id);
         } else {
-            throw new InstanceNotFoundException("There is no such film");
+            throw new InstanceNotFoundException("There is no such Genre");
         }
     }
 
