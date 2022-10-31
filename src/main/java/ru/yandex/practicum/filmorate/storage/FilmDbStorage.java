@@ -129,17 +129,6 @@ public class FilmDbStorage implements FilmStorage {
         return result == 1;
     }
 
-
-    /*public int addNewFilm(Film film) {
-        String sqlQuery = "insert into films (name, description, duration, release_date, mpa_id)" +
-                "values (?, ?, ?, ?, ?)";
-
-        jdbcTemplate.update(sqlQuery, film.getName(), film.getDescription(), film.getDuration(), film.getReleaseDate(),
-                film.getMpa().getId());
-        log.info("Film added");
-        return 1;
-    }*/
-
     public int addNewFilm(Film film) {
         SimpleJdbcInsert simpleJdbcInsert = new SimpleJdbcInsert(jdbcTemplate)
                 .withTableName("films")
@@ -207,11 +196,6 @@ public class FilmDbStorage implements FilmStorage {
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToRating);
     }
-
-    /*private void deleteRatingsForFilm(Integer id) {
-        String sqlQuery = "delete from film_by_genre where id = ?";
-        jdbcTemplate.update(sqlQuery, id);
-    }*/
 
     private void updateGenresForFilm(List<Genre> list, Integer FilmId) {
 
