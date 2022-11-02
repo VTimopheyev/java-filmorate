@@ -90,7 +90,7 @@ class UserDbStorageTests {
         userStorage.addNewUser(user3);
 
         List<User> users = userStorage.getAllUsers();
-        Assertions.assertEquals(5, users.size());
+        Assertions.assertEquals(7, users.size());
 
     }
 
