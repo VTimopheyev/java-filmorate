@@ -21,6 +21,7 @@ public class UserDbStorage implements UserStorage {
 
     @Autowired
     public UserDbStorage(JdbcTemplate jdbcTemplate) {
+
         this.jdbcTemplate = jdbcTemplate;
     }
 
@@ -29,28 +30,6 @@ public class UserDbStorage implements UserStorage {
         String sqlQuery = "select count(*) from users where user_id = ?";
         Integer result = jdbcTemplate.queryForObject(sqlQuery, Integer.class, id);
         return result == 1;
-    }
-
-    @Override
-    public boolean checkFriendshipExist(Integer userId, Integer friendId) {
-        String sqlQuery = "select count(*) from friendship_approved where user_id = ? and friend_id = ?";
-        Integer result = jdbcTemplate.queryForObject(sqlQuery, Integer.class, userId, friendId);
-        return result == 1;
-    }
-
-    @Override
-    public boolean checkFriendshipRequestedByUser(Integer userId, Integer friendId) {
-        String sqlQuery = "select count(*) from friendship_requests where user_id = ? and friend_id = ?";
-        Integer result = jdbcTemplate.queryForObject(sqlQuery, Integer.class, userId, friendId);
-        return result == 1;
-    }
-
-    @Override
-    public void removeFriendshipRequest(Integer userId, Integer friendId) {
-        String sqlQuery = "delete from friendship_requests where user_id = ? and friend_id = ?";
-
-        jdbcTemplate.update(sqlQuery, userId, friendId);
-        log.info("Friendship request removed");
     }
 
     @Override
@@ -89,104 +68,6 @@ public class UserDbStorage implements UserStorage {
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToUser);
     }
-
-    @Override
-    public List<User> addFriend(Integer userId, Integer friendId) {
-        if (checkFriendshipRequestedByUser(userId, friendId)) {
-
-            removeFriendshipRequest(userId, friendId);
-            approveFriendShip(userId, friendId);
-
-            log.info("Friendship approved");
-
-            return getAllFriendsOfUser(userId);
-        }
-
-        String sqlQuery = "insert into friendship_requests (user_id, friend_id) " +
-                "values (?, ?)";
-        jdbcTemplate.update(sqlQuery, friendId, userId);
-
-        approveFriendShip(userId, friendId);
-
-        log.info("Friendship requested by friend");
-        return getAllFriendsOfUser(userId);
-    }
-
-    @Override
-    public List<User> getAllFriendsOfUser(Integer userId) {
-        List<Integer> friendsId = getAllFriendsId(userId);
-        List<User> friends = new ArrayList<>();
-        for (Integer id : friendsId) {
-            friends.add(getUser(id));
-        }
-        return friends;
-    }
-
-
-    @Override
-    public List<Integer> getAllFriendsId(Integer userId) {
-        String sqlQuery = "select friend_id " + "from friendship_approved " +
-                "where user_id = ?";
-
-        return jdbcTemplate.queryForList(sqlQuery, Integer.class, userId);
-    }
-
-    @Override
-    public void removeUserFromFriends(Integer userId, Integer friendId) {
-
-        if (!checkIfUserInFriendsList(userId, friendId)) {
-            log.info("There`s no such friend of user");
-        }
-
-        if (checkFriendshipRequestedByUser(friendId, userId)) {
-
-            String sqlQuery = "delete from friendship_approved where user_id = ? and friend_id = ?";
-            jdbcTemplate.update(sqlQuery, userId, friendId);
-            log.info("Friend removed");
-
-            sqlQuery = "delete from friendship_requests where user_id = ? and friend_id = ?";
-            jdbcTemplate.update(sqlQuery, friendId, userId);
-            log.info("Friendship Request declined");
-        }
-
-        if (checkFriendshipExist(userId, friendId) && checkFriendshipExist(friendId, userId)) {
-            String sqlQuery = "delete from friendship_approved where user_id = ? and friend_id = ?";
-            jdbcTemplate.update(sqlQuery, userId, friendId);
-            log.info("Friend removed");
-
-            sqlQuery = "delete from friendship_approved where user_id = ? and friend_id = ?";
-            jdbcTemplate.update(sqlQuery, friendId, userId);
-            log.info("Friendship removed");
-        }
-    }
-
-    @Override
-    public boolean checkIfUserInFriendsList(Integer userId, Integer friendId) {
-        List<User> friends = getAllFriendsOfUser(userId);
-        for (User f : friends) {
-            if (f.getId() == friendId) {
-                return true;
-            }
-        }
-        return false;
-    }
-
-    @Override
-    public void approveFriendShip(Integer userId, Integer friendId) {
-
-        String sqlQuery = "insert into friendship_approved (user_id, friend_id)" +
-                "values (?, ?)";
-        jdbcTemplate.update(sqlQuery, userId, friendId);
-    }
-
-    @Override
-    public void addFriendshipRequest(Integer userId, Integer friendId) {
-
-        String sqlQuery = "insert into friendship_requests (user_id, friend_id)" +
-                "values (?, ?)";
-        jdbcTemplate.update(sqlQuery, userId, friendId);
-    }
-
 
     @Override
     public User mapRowToUser(ResultSet resultSet, int rowNum) throws SQLException {

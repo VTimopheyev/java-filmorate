@@ -11,6 +11,9 @@ import ru.yandex.practicum.filmorate.model.Genre;
 import ru.yandex.practicum.filmorate.model.Like;
 import ru.yandex.practicum.filmorate.model.Rating;
 import ru.yandex.practicum.filmorate.storage.FilmStorage;
+import ru.yandex.practicum.filmorate.storage.GenreDbStorage;
+import ru.yandex.practicum.filmorate.storage.LikeDbStorage;
+import ru.yandex.practicum.filmorate.storage.MpaDbStorage;
 
 import java.util.Date;
 import java.util.List;
@@ -24,10 +27,18 @@ public class FilmService {
     private final static Logger log = LoggerFactory.getLogger(FilmService.class);
     private final Date earliestReleaseDate = valueOf("1895-12-28");
     private FilmStorage filmStorage;
+    private final MpaDbStorage mpaDbStorage;
+    private final GenreDbStorage genreDbStorage;
+    private final LikeDbStorage likeDbStorage;
+
 
     @Autowired
-    public FilmService(FilmStorage filmStorage) {
+    public FilmService(FilmStorage filmStorage, MpaDbStorage mpaDbStorage, GenreDbStorage genreDbStorage,
+                       LikeDbStorage likeDbStorage) {
         this.filmStorage = filmStorage;
+        this.mpaDbStorage = mpaDbStorage;
+        this.genreDbStorage = genreDbStorage;
+        this.likeDbStorage = likeDbStorage;
     }
 
     public Film addNewFilm(Film film) {
@@ -61,7 +72,7 @@ public class FilmService {
 
     public List<Like> putLike(Integer filmId, Integer userId) {
         if (!filmStorage.likedBefore(filmId, userId)) {
-            filmStorage.putNewLike(filmId, userId);
+            likeDbStorage.putNewLike(filmId, userId);
             return filmStorage.getLikes(filmId);
         } else {
             throw new InstanceNotFoundException("Cannot be liked");
@@ -70,7 +81,7 @@ public class FilmService {
 
     public List<Like> removeLike(Integer filmId, Integer userId) {
         if (checkIfFilmWasPreviouslyLiked(filmId, userId)) {
-            filmStorage.removeLike(filmId, userId);
+            likeDbStorage.removeLike(filmId, userId);
             return filmStorage.getLikes(filmId);
         } else {
             throw new ValidationException("The film was not liked");
@@ -98,26 +109,26 @@ public class FilmService {
 
     public Rating getMpaRating(Integer id) {
         if (filmStorage.checkRating(id)) {
-            return filmStorage.getRating(id);
+            return mpaDbStorage.getRating(id);
         } else {
             throw new InstanceNotFoundException("There is no such rating");
         }
     }
 
     public List<Rating> getAllRatings() {
-        return filmStorage.getAllRatings();
+        return mpaDbStorage.getAllRatings();
     }
 
     public Genre getGenre (Integer id) {
         if (filmStorage.checkGenreExist(id)) {
-            return filmStorage.getGenre(id);
+            return genreDbStorage.getGenre(id);
         } else {
             throw new InstanceNotFoundException("There is no such Genre");
         }
     }
 
     public List<Genre> getAllGenres() {
-        return filmStorage.getAllGenres();
+        return genreDbStorage.getAllGenres();
     }
 
     private boolean validateFilm(Film film) throws ValidationException {

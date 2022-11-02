@@ -21,10 +21,13 @@ public class FilmDbStorage implements FilmStorage {
 
     private final static Logger log = LoggerFactory.getLogger(InMemoryFilmStorage.class);
     private final JdbcTemplate jdbcTemplate;
+    private final MpaDbStorage mpaDbStorage;
+
 
     @Autowired
-    public FilmDbStorage(JdbcTemplate jdbcTemplate) {
+    public FilmDbStorage(JdbcTemplate jdbcTemplate, MpaDbStorage mpaDbStorage, LikeDbStorage likeDbStorage) {
         this.jdbcTemplate = jdbcTemplate;
+        this.mpaDbStorage = mpaDbStorage;
     }
 
     public boolean filmExists(Integer id) {
@@ -53,23 +56,9 @@ public class FilmDbStorage implements FilmStorage {
         Integer ratingId = jdbcTemplate.queryForObject(sqlQuery, Integer.class, id);
 
         film.setGenres(getGenres(id));
-        film.setMpa(getRating(ratingId));
+        film.setMpa(mpaDbStorage.getRating(ratingId));
 
         return film;
-    }
-
-    /*public Rating getRating(Integer filmId) {
-        String sqlQuery = "select films.mpa_id, mpa_rating.mpa_name" +
-                " from films " + " join mpa_rating on films.mpa_id = mpa_rating.mpa_id " + " where film_id = ? ";
-
-        return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToRating, filmId);
-    }*/
-
-    public Rating getRating(Integer id) {
-        String sqlQuery = "select mpa_id, mpa_name " +
-                "from mpa_rating where mpa_id = ?";
-
-        return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToRating, id);
     }
 
     public boolean checkRating(Integer id) {
@@ -104,22 +93,10 @@ public class FilmDbStorage implements FilmStorage {
             sqlQuery = "select mpa_id " +
                     "from films where film_id = ?";
             Integer ratingId = jdbcTemplate.queryForObject(sqlQuery, Integer.class, f.getId());
-            f.setMpa(getRating(ratingId));
+            f.setMpa(mpaDbStorage.getRating(ratingId));
         }
 
         return films;
-    }
-
-    public List<Genre> getAllGenres() {
-        String sqlQuery = "select genre_id, name from genres";
-
-        return jdbcTemplate.query(sqlQuery, this::mapRowToGenre);
-    }
-
-    public Genre getGenre(Integer id) {
-        String sqlQuery = "select genre_id, name from genres" + " where genre_id = ?";
-
-        return jdbcTemplate.queryForObject(sqlQuery, this::mapRowToGenre, id);
     }
 
     public boolean checkGenreExist(Integer id) {
@@ -169,32 +146,10 @@ public class FilmDbStorage implements FilmStorage {
         return jdbcTemplate.update(sqlQuery, id) > 0;
     }
 
-    public void putNewLike(Integer filmId, Integer userId) {
-        String sqlQuery = "insert into likes (film_id, user_id)" +
-                " values (?, ?)";
-
-        jdbcTemplate.update(sqlQuery, filmId, userId);
-        log.info("Like added");
-    }
-
-    public void removeLike(Integer filmId, Integer userId) {
-        String sqlQuery = "delete from likes where film_id = ? and user_id = ?";
-
-        jdbcTemplate.update(sqlQuery, filmId, userId);
-        log.info("Like removed");
-    }
-
     public List<Like> getLikes(Integer filmId) {
         String sqlQuery = "select user_id, film_id" + " from likes where film_id = ?";
 
         return jdbcTemplate.query(sqlQuery, this::mapRowToLike, filmId);
-    }
-
-    public List<Rating> getAllRatings() {
-        String sqlQuery = "select mpa_id, mpa_name" +
-                " from mpa_rating";
-
-        return jdbcTemplate.query(sqlQuery, this::mapRowToRating);
     }
 
     private void updateGenresForFilm(List<Genre> list, Integer FilmId) {
@@ -227,14 +182,6 @@ public class FilmDbStorage implements FilmStorage {
                 .build();
 
         return film;
-    }
-
-    private Rating mapRowToRating(ResultSet resultSet, int rowNum) throws SQLException {
-        // It is used to map each row of a ResultSet to an object.
-        return Rating.builder()
-                .id(resultSet.getInt("mpa_id"))
-                .name(resultSet.getString("mpa_name"))
-                .build();
     }
 
     private Genre mapRowToGenre(ResultSet resultSet, int rowNum) throws SQLException {

@@ -9,6 +9,8 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 
 import ru.yandex.practicum.filmorate.model.User;
 
+import ru.yandex.practicum.filmorate.storage.FriendDbStorage;
+import ru.yandex.practicum.filmorate.storage.MpaDbStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
 import java.time.Instant;
@@ -20,12 +22,15 @@ import java.util.List;
 @Service
 public class UserService {
 
-    private UserStorage userStorage;
+    private final UserStorage userStorage;
+    private final FriendDbStorage friendDbStorage;
     private final static Logger log = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(UserStorage userStorage, FriendDbStorage friendDbStorage) {
+
         this.userStorage = userStorage;
+        this.friendDbStorage = friendDbStorage;
     }
 
     public boolean checkUserExist(Integer userId) {
@@ -77,28 +82,28 @@ public class UserService {
         if (!checkUserExist(userId) || (!checkUserExist(friendId))) {
             throw new InstanceNotFoundException("No such user or friend");
         }
-        if (userStorage.checkFriendshipExist(userId, friendId) || userStorage.checkFriendshipRequestedByUser(userId, friendId)) {
+        if (friendDbStorage.checkFriendshipExist(userId, friendId) || friendDbStorage.checkFriendshipRequestedByUser(userId, friendId)) {
             throw new ValidationException("Friendship already requested or confirmed");
         }
-        return userStorage.addFriend(userId, friendId);
+        return friendDbStorage.addFriend(userId, friendId);
     }
 
     public void removeFriend(Integer userId, Integer friendId) {
         if (!checkUserExist(userId) || (!checkUserExist(friendId))) {
             throw new InstanceNotFoundException("No such user or friend");
         }
-        if (!userStorage.checkFriendshipExist(userId, friendId) ||
-                !userStorage.checkFriendshipRequestedByUser(userId, friendId)) {
+        if (!friendDbStorage.checkFriendshipExist(userId, friendId) ||
+                !friendDbStorage.checkFriendshipRequestedByUser(userId, friendId)) {
             throw new ValidationException("Friendship hasn`t been requested or confirmed");
         }
-        userStorage.removeUserFromFriends(userId, friendId);
+        friendDbStorage.removeUserFromFriends(userId, friendId);
     }
 
     public List<User> getAllFriends(int id) throws InstanceNotFoundException {
         if (!checkUserExist(id)) {
             throw new InstanceNotFoundException("No such user");
         }
-        return userStorage.getAllFriendsOfUser(id);
+        return friendDbStorage.getAllFriendsOfUser(id);
     }
 
     public List<User> getCommonFriendsList(Integer userid, Integer friendId) {
@@ -133,7 +138,7 @@ public class UserService {
 
     public void removeUserFromFriends(int id, int friendId) {
         if (checkUserExist(id) && checkUserExist(friendId)) {
-            userStorage.removeUserFromFriends(id, friendId);
+            friendDbStorage.removeUserFromFriends(id, friendId);
         } else {
             throw new InstanceNotFoundException("No such user or friend exists");
         }
