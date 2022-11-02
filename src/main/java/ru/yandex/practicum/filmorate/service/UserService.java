@@ -9,21 +9,46 @@ import ru.yandex.practicum.filmorate.exceptions.ValidationException;
 
 import ru.yandex.practicum.filmorate.model.User;
 
+import ru.yandex.practicum.filmorate.storage.FriendDbStorage;
+import ru.yandex.practicum.filmorate.storage.MpaDbStorage;
 import ru.yandex.practicum.filmorate.storage.UserStorage;
 
+import java.time.Instant;
 import java.time.LocalDate;
 import java.util.ArrayList;
+import java.util.Date;
 import java.util.List;
 
 @Service
 public class UserService {
 
-   private UserStorage userStorage;
+    private final UserStorage userStorage;
+    private final FriendDbStorage friendDbStorage;
     private final static Logger log = LoggerFactory.getLogger(UserService.class);
 
     @Autowired
-    public UserService(UserStorage userStorage) {
+    public UserService(UserStorage userStorage, FriendDbStorage friendDbStorage) {
+
         this.userStorage = userStorage;
+        this.friendDbStorage = friendDbStorage;
+    }
+
+    public boolean checkUserExist(Integer userId) {
+        if (userStorage.checkUserExist(userId)){
+            return true;
+        }
+        else {
+            throw new InstanceNotFoundException("No such user");
+        }
+    }
+
+    public User getUser (Integer userId){
+        if (checkUserExist(userId)){
+            return userStorage.getUser(userId);
+        }
+        else {
+            throw new InstanceNotFoundException("No such user");
+        }
     }
 
     public User addNewUser(User user) throws ValidationException {
@@ -31,9 +56,10 @@ public class UserService {
             if (user.getName().isEmpty()) {
                 user.setName(user.getLogin());
             }
-            return userStorage.addNewUser(user);
+            return userStorage.getUser(userStorage.addNewUser(user));
+        } else {
+            throw new ValidationException("Wrong User credentials");
         }
-        return null;
     }
 
     public User updateUser(User user) {
@@ -41,44 +67,57 @@ public class UserService {
             if (user.getName().isEmpty()) {
                 user.setName(user.getLogin());
             }
-            if (user.getFriends() == null) {
-                user.setFriends(new ArrayList<>());
-            }
+
             return userStorage.updateUser(user);
+        } else {
+            throw new ValidationException("Wrong User credentials");
         }
-        return null;
     }
 
     public List<User> getAllUsersList() {
-
-        return userStorage.sendAllUsersList();
+        return userStorage.getAllUsers();
     }
 
-    public void addNewFriendToUser(Integer id, Integer friendId) {
-        if (checkUserExist(id) && checkUserExist(friendId)) {
-            userStorage.addNewFriendToUser(id, friendId);
+    public List <User> addNewFriendToUser(Integer userId, Integer friendId) {
+        if (!checkUserExist(userId) || (!checkUserExist(friendId))) {
+            throw new InstanceNotFoundException("No such user or friend");
         }
+        if (friendDbStorage.checkFriendshipExist(userId, friendId) || friendDbStorage.checkFriendshipRequestedByUser(userId, friendId)) {
+            throw new ValidationException("Friendship already requested or confirmed");
+        }
+        return friendDbStorage.addFriend(userId, friendId);
     }
 
-    public void removeUserFromFriends(Integer id, Integer friendId) {
-        if (checkUserExist(id) && checkUserExist(friendId) &&
-                checkUserInFriendsList(id, friendId)) {
-            userStorage.removeUserFromFriends(id, friendId);
+    public void removeFriend(Integer userId, Integer friendId) {
+        if (!checkUserExist(userId) || (!checkUserExist(friendId))) {
+            throw new InstanceNotFoundException("No such user or friend");
         }
+        if (!friendDbStorage.checkFriendshipExist(userId, friendId) ||
+                !friendDbStorage.checkFriendshipRequestedByUser(userId, friendId)) {
+            throw new ValidationException("Friendship hasn`t been requested or confirmed");
+        }
+        friendDbStorage.removeUserFromFriends(userId, friendId);
     }
 
     public List<User> getAllFriends(int id) throws InstanceNotFoundException {
-        if (userStorage.getUsers().containsKey(id) && validateUser(userStorage.getUsers().get(id))) {
-            return userStorage.getAllFriendsOfUser(id);
+        if (!checkUserExist(id)) {
+            throw new InstanceNotFoundException("No such user");
         }
-        return null;
+        return friendDbStorage.getAllFriendsOfUser(id);
     }
 
-    public List<User> getCommonFriendsList(Integer id, Integer friendId) {
-        if (checkUserExist(id) && checkUserExist(friendId)) {
-            return userStorage.getCommonFriendsList(id, friendId);
+    public List<User> getCommonFriendsList(Integer userid, Integer friendId) {
+
+        List<User> usersFriends = getAllFriends(userid);
+        List<User> friendsFriends = getAllFriends(friendId);
+        List<User> commonFriends = new ArrayList<>();
+        for (User u : usersFriends) {
+            if (friendsFriends.contains(u)) {
+                commonFriends.add(u);
+            }
         }
-        return null;
+
+        return commonFriends;
     }
 
     private boolean validateUser(User user) throws ValidationException {
@@ -90,37 +129,18 @@ public class UserService {
         } else if (user.getLogin().isEmpty() || user.getLogin().contains(" ")) {
             throw new ValidationException("Login is wrong");
 
-        } else if (user.getBirthday().isAfter(LocalDate.now())) {
+        } else if (user.getBirthday().toInstant().isAfter(Instant.now())) {
             throw new ValidationException("Birth date must not be in future");
 
         }
         return validated;
     }
 
-    public boolean checkUserExist(int id) throws InstanceNotFoundException {
-        if (userStorage.getUsers().containsKey(id)) {
-            return true;
+    public void removeUserFromFriends(int id, int friendId) {
+        if (checkUserExist(id) && checkUserExist(friendId)) {
+            friendDbStorage.removeUserFromFriends(id, friendId);
         } else {
-            log.info("No such user to update");
-            throw new InstanceNotFoundException("No such user to update");
-        }
-    }
-
-    public boolean checkUserInFriendsList(Integer id, Integer friendId) throws InstanceNotFoundException {
-        if (userStorage.getUsers().get(id).getFriends().contains(friendId)) {
-            return false;
-        } else {
-            log.info("There is a friend with this ID in the list already");
-            throw new InstanceNotFoundException("There is a friend with this ID in the list already");
-        }
-    }
-
-    public User getUserById(int id) {
-        if (checkUserExist(id)) {
-            return userStorage.getUsers().get(id);
-        } else {
-            log.info("There is no such user");
-            throw new InstanceNotFoundException("No such User");
+            throw new InstanceNotFoundException("No such user or friend exists");
         }
     }
 }
